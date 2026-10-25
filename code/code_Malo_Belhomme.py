@@ -5,7 +5,7 @@ import datetime
 import math
 SEUIL=3 #écart maximal compris en heures accepté pour faire une interpolation de valeurs
 L=[5]+[30*i for i in range(1,18)]   #valeurs de L testées
-Lp=[p for p in range(1,25)]   #valeurs de p testées dans AR(p)
+Lp=[p for p in range(1,100)]   #valeurs de p testées dans AR(p)
 
 
 
@@ -13,6 +13,7 @@ data=pd.read_csv('/Users/malo/Work Mines/UE14/Data_UE14_def.csv', sep=";")
 mask=data['valeur brute'].notna()
 data=data[mask]
 data=data[['Date de début','valeur brute']]
+
 
 def ecart_dates(date1,date2,seuil=SEUIL,check=False):  #seuil en nb d'heures, vérifie si on peut combler par interpolation des absences de données entre 2 dates par rapport à leur écart.   Date au format 'Y-M-D H:S:MS'
     s1,s2=date1.split(sep=' '),date2.split(sep=' ')
@@ -45,12 +46,12 @@ data=data.sort_index()
 
 l=len(data)
 dataTrain=data[:int(l*8/18)]['valeur brute']
-dataTest=data[int(l*8/18):-int(l*16/18)]['valeur brute']
+dataTest=data[int(l*8/18):int(l*16/18)]['valeur brute']
 dataValid=data[int(l*16/18):]['valeur brute']
 
 dataTrainCentre=dataTrain-np.mean(dataTrain)
-dataTestCentre=dataTest-np.mean(dataTest)
-dataValidCentre=dataValid-np.mean(dataValid)
+dataTestCentre=dataTest-np.mean(dataTrain)
+dataValidCentre=dataValid-np.mean(dataTrain)
 
 
 
@@ -176,17 +177,38 @@ def tanh(x):
 
 
 ##Fonctions d'analyse statistique
+#prennent toutes en entrées les prédictions CENTRÉES
 
-
-def nRSME(trueValues,predictedValues,serieNonCentre):
+def nRMSE(trueValues,predictedValues):
     N=len(predictedValues)
     error=np.array(predictedValues).reshape(N)-np.array(trueValues).reshape(N)
-    return np.sqrt(np.square(error).sum()/N)/(np.mean(predictedValues)+np.mean(serieNonCentre))
+    return np.sqrt(np.square(error).sum()/N)/abs(np.mean(trueValues)+np.mean(dataTrain))
 
-def meanError(trueValues,predictedValues):
+
+def nMAE(trueValues,predictedValues):
     N=len(predictedValues)
     error=np.array(predictedValues).reshape(N)-np.array(trueValues).reshape(N)
-    return np.sqrt(np.square(error).sum()/N)
+    return (np.abs(error).sum()/N)/abs(np.mean(trueValues)+np.mean(dataTrain))
+
+def nMBE(trueValues,predictedValues):
+    N=len(predictedValues)
+    error=np.array(predictedValues).reshape(N)-np.array(trueValues).reshape(N)
+    return (error.sum()/N)/abs(np.mean(trueValues)+np.mean(dataTrain))
+
+def RSquared(trueValues,predictedValues):
+    denom=np.square(trueValues - np.mean(trueValues))
+    errSquared=(np.square(error).sum())
+    return 1-errSquared/denom
+
+def NICE(trueValues,predictedValues):
+    L=0
+    err=np.abs(trueValues-predictedValues)
+    N=len(predictedValues)
+    for k in [1,2,3]:
+        Lk=((err**k).sum()/N)**(1/k)
+        L+=Lk
+    return L/3
+
 
 ## Validation AR(p)
 
@@ -200,12 +222,14 @@ def ARp_predict(data):  #renvoie les valeurs predites pour data, dans un dico av
         Y_predict=[]
         X,Y=XY(data,p)
         dicY_TrueValues[p]=Y
-        rowPrec=X[0]
-        XW=np.dot(rowPrec,dicW_ARp[p])+rowPrec[0]*dicW_ARp[p][0][0]-rowPrec[-1]*dicW_ARp[p][-1][0]
+        #rowPrec=X[0]
+        #XW=np.dot(rowPrec,dicW_ARp[p])+rowPrec[0]*dicW_ARp[p][0][0]-rowPrec[-1]*dicW_ARp[p][-1][0]
+        #for row in X:
+        #    XW=XW-rowPrec[0]*dicW_ARp[p][0][0]+row[-1]*dicW_ARp[p][-1][0]
+        #    Y_predict.append(XW)
+        #    rowPrec=row
         for row in X:
-            XW=XW-rowPrec[0]*dicW_ARp[p][0][0]+row[-1]*dicW_ARp[p][-1][0]
-            Y_predict.append(XW)
-            rowPrec=row
+            Y_predict.append(np.dot(row,dicW_ARp[p]))
 
         dicY_ARp_predict[p]=Y_predict
     return dicY_ARp_predict,dicY_TrueValues
@@ -224,7 +248,7 @@ def ARp_predictDiff(data):
             XW=XW-rowPrec[0]*dicW_ARpDiff[p][0][0]+row[-1]*dicW_ARpDiff[p][-1][0]
             Y_predict.append(XW)
             rowPrec=row
-    dicY_ARpDiff_predict[p]=Y_predict
+        dicY_ARpDiff_predict[p]=Y_predict
     return  dicY_ARpDiff_predict,dicYDiff_TrueValues
 
 
@@ -232,17 +256,20 @@ def ARp_predictDiff(data):
 ##Validation ELM
 
 
-def validationELM(func):
-    dicY_ELM_predict_validation={} #pour chaque clé p, contient un autre dico qui pour chaque clé L détient le tableau des valeurs prédites par l'ELM
-    dicY_ELMDiff_predict_validation={}
-
+def ELM_predict(data,func):
+    dicY_ELM_predict={} #pour chaque clé p, contient un autre dico qui pour chaque clé L détient le tableau des valeurs prédites par l'ELM
+    dicY_ELMDiff_predict={}
+    dicY_True={}
+    dicYDiff_True={}
     for p in [2,5,10]:
         dicY_ELMp_predict={}
         dicY_ELMpDiff_predict={}
         dicBeta,dicWin,dicBiais=geneELM_fullPlageL(p,func)
         dicBetaDiff,dicWinDiff,dicBiaisDiff=geneELM_fullPlageL(p,func,diff=True)
-        XDiff,YDiff=XYDiff(dataValidCentre,p)
-        X,Y=XY(dataValidCentre,p)
+        XDiff,YDiff=XYDiff(data,p)
+        X,Y=XY(data,p)
+        dicY_True[p]=Y
+        dicYDiff_True[p]=YDiff
 
         for l in L:
             Win=dicWin[l]
@@ -259,7 +286,8 @@ def validationELM(func):
 
                 rowPrec=row
             dicY_ELMp_predict[l]=Y_predictL
-        dicY_ELM_predict_validation[p]=dicY_ELMp_predict
+            #print(len(dicY_True[p])==len(Y_predictL))
+        dicY_ELM_predict[p]=dicY_ELMp_predict
 
 
         for l in L:
@@ -270,16 +298,14 @@ def validationELM(func):
             rowPrec=X[0]
             XW=np.dot(rowPrec,WinDiff)  + rowPrec[0]*WinDiff[0] - rowPrec[-1]*WinDiff[-1]
 
-            for row in X:
+            for row in XDiff:
                 XW= XW - rowPrec[0]*WinDiff[0] + row[-1]*WinDiff[-1]
                 H=func(XW+biaisDiff)
                 Y_predictLDiff.append(np.dot(H,betaDiff))
                 rowPrec=row
             dicY_ELMpDiff_predict[l]=Y_predictLDiff
-        dicY_ELMDiff_predict_validation[p]=dicY_ELMp_predict
-
-
-    return dicY_ELM_predict_validation, dicY_ELMDiff_predict_validation
+        dicY_ELMDiff_predict[p]=dicY_ELMpDiff_predict
+    return (dicY_ELM_predict,dicY_True), (dicY_ELMDiff_predict, dicYDiff_True)
 
 
 ##Prediction avec persistance
@@ -292,12 +318,58 @@ def persistance(data):
     return Y_predict,Y[1:]
 
 
-##
+##Tracés validation
 
-for p in Lp:
-    X,Y=XY(dataValidCentre,p)
-    print(len(Y),np.mean(Y),Y[0])
 
+def trace_valid_nRMSE_ELM(data):
+    tabFun=[sigmo,tanh]
+    tabFunString=['sigmo','tanh']
+    fig,axes=plt.subplots(2,2)
+    for i,func in enumerate(tabFun):
+
+
+        (dicY_pred,dicY_True),(dicYDiff_pred,dicYDiff_True)=ELM_predict(data,func)
+
+        for j,diff in enumerate(['non diff','diff']):
+            if diff=='diff': dicY_predict, dicY_TrueValues=dicYDiff_pred,dicYDiff_True
+            else: dicY_predict, dicY_TrueValues=dicY_pred,dicY_True
+            ax=axes[i,j]
+            for (p,dicoYPred),(d,dicoYTrue) in zip(dicY_predict.items(), dicY_TrueValues.items()):
+                nRMSEtab=[]
+                for l in L:
+                    Ypred=dicoYPred[l]
+                    Y=dicoYTrue
+                    nRMSEtab.append(nRMSE(Y,Ypred)*100)
+                ax.plot(L,nRMSEtab,label=f"{p} retards en entrée")
+            ax.set_xlabel("Valeurs de L, nombre de neurones")
+            ax.set_ylabel('nRMSE en %')
+            ax.set_title(f"Série {diff} avec la fonction d'activation {tabFunString[i]}")
+            ax.legend()
+    plt.suptitle('nRMSE des séries différenciées ou non, avec tanh ou sigmoïde en activation, avec la méthode ELM')
+    plt.show()
+
+def trace_valid_nRMSE_ARp(data):
+    dicY_ARp_predict,dicY_TrueValues=ARp_predict(data)
+    fig,axes=plt.subplots(1,2)
+    (dicY_pred,dicY_True),(dicYDiff_pred,dicYDiff_True)=ARp_predict(data),ARp_predictDiff(data)
+    for j,diff in enumerate(['non diff','diff']):
+        if diff=='diff': dicY_predict, dicY_TrueValues=dicYDiff_pred,dicYDiff_True
+        else: dicY_predict, dicY_TrueValues=dicY_pred,dicY_True
+        ax=axes[j]
+        nRMSEtab=[]
+        for p in dicY_predict:
+            Ypred=dicY_predict[p]
+            Y=dicY_TrueValues[p]
+            nRMSEtab.append(nRMSE(Y,Ypred)*100)
+        ax.plot(Lp,nRMSEtab)
+        ax.set_xlabel('nombre de retards p')
+        ax.set_ylabel('nRMSE en %')
+        ax.set_title(f"Série {diff}")
+    plt.suptitle("nRMSE des séries différenciées ou non, avec la méthode AR(p)" )
+    plt.show()
+
+
+##Tests des modèles
 
 
 
