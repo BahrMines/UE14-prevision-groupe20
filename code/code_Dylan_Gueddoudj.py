@@ -5,7 +5,7 @@ import os
 import sys 
 
 # Tambouille d'IA pour importer mes fonctions...
-racine_projet = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+racine_projet =os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 # 2. On l'ajoute au chemin de recherche de Python
 if racine_projet not in sys.path:
