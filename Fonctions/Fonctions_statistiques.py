@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 
 def nRMSE(trueValues,predictedValues):
     trueValues, predictedValues = np.array(trueValues), np.array(predictedValues)   
+    print(trueValues, predictedValues)
     error = predictedValues - trueValues #on définit ici et = x̂t − xt
     return np.sqrt(np.mean(error**2)) / np.mean(trueValues)
 
