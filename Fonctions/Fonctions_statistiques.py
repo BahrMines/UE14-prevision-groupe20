@@ -33,21 +33,23 @@ def RSquared(trueValues,predictedValues):
     return 1-num/denom
 
 
-def NICE(trueValues,predictedValues):
+def NICE(trueValues, predictedValues, persistanceValues):
     trueValues = np.array(trueValues)
     predictedValues = np.array(predictedValues)
     persistanceValues = np.array(persistanceValues)
     
-    error_modele= np.abs(predictedValues - trueValues)
+    error_modele = np.abs(predictedValues - trueValues)
     error_persistance = np.abs(persistanceValues - trueValues)
     
-    nice=0
+    nice = 0
     for k in [1, 2, 3]:
-        Lk_mod = (np.mean(err_mod**k))**(1/k)
-        Lk_pers = (np.mean(err_pers**k))**(1/k)
+        Lk_mod = (np.mean(error_modele**k))**(1/k)
+        Lk_pers = (np.mean(error_persistance**k))**(1/k)
         nice += (Lk_mod / Lk_pers)
         
     return nice / 3
+
+
 
 def afficher_statistiques(serie, nom_serie):
     N = len(serie)
