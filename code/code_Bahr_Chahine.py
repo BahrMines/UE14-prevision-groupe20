@@ -2,7 +2,12 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error, mean_squared_error
+#from mesures import nMAE, nRMSE, nMBE, RSquared, NICE
+import sys
+
+sys.path.insert(0, r"C:\Users\bahrc\MinesParis\UE 14 Terre et Société\Mini projet\UE14-prevision-groupe20\Fonctions")
 from Fonctions_statistiques import nMAE, nRMSE, nMBE, RSquared, NICE
+
 
 
 
@@ -11,10 +16,10 @@ df = pd.read_csv('data_Bahr_Chahine.csv', sep=';')
 df=df.dropna() # cleaning the data by dropping the rows with missing values
 #print(df.head(10).loc[0:10, ['Date', 'Consommation (MW)', 'Eolien (MW)', 'Solaire (MW)', 'Nucléaire (MW)', 'Hydraulique (MW)', 'Fioul (MW)', 'Charbon (MW)', 'Gaz (MW)']])
 
-mask= (df['Date']=='2026-08-31')
+mask= (df['Date']>='2026-08-31')
 df31a = df[mask]
 yr=df31a[['Heure', 'Consommation (MW)']].set_index('Heure') # yr : set of real values of consumption for 31/08/2026
-yrr=df[(df['Date']=='2026-08-30')][['Heure', 'Consommation (MW)']].set_index('Heure') #yrr : set of real values of consumption for 30/08/2026
+yrr=df[mask][['Heure', 'Consommation (MW)']].set_index('Heure') #yrr : set of real values of consumption for 30/08/2026
 yrl=yr.to_numpy() # numpy array of real values of consumption for 31/08/2026
 yrrl=yrr.to_numpy() # numpy array of real values of consumption for 30/08/2026
 
@@ -81,15 +86,33 @@ def ELM(Y,p,L,a,graph=True):
         plt.show()
     return yp
 
-def diffELM(Y,p,L,a,graph=True):
-    YL=Y.to_numpy()
-    z=Y.diff().dropna()
-    return ELM(z,p,L,a,graph)
-
 def diffAR(Y,p,graph=True):
     YL=Y.to_numpy()
     z=Y.diff().dropna()
-    return AR(z,p,graph)
+    zp = AR(z,p,graph)
+    yp=zp+Y.shift(1).to_numpy()[:-1,0]
+    plt.plot(Y, label="Réel")
+    plt.plot(yp, label="Prévision par ARdiff("+str(p)+")")
+    plt.title("Consommation d'électricité pour le 31/08/2026")
+    plt.xlabel("Heure",fontsize=5)
+    plt.xticks(rotation=75, ticks=yr.index[::2])
+    plt.ylabel("Consommation (MW)")
+    plt.legend()
+    plt.show()
+
+def diffELM(Y,p,L,a,graph=True):
+    YL=Y.to_numpy()
+    z=Y.diff().dropna()
+    zp = ELM(z,p,L,a,graph)
+    yp=zp+Y.shift(1).to_numpy()[:-1,0]
+    plt.plot(Y, label="Réel")
+    plt.plot(yp, label="Prévision par ELMdiff("+str(p)+","+str(L)+")")
+    plt.title("Consommation d'électricité pour le 31/08/2026")
+    plt.xlabel("Heure",fontsize=5)
+    plt.xticks(rotation=75, ticks=yr.index[::2])
+    plt.ylabel("Consommation (MW)")
+    plt.legend()
+    plt.show()
 
 
 def minpAR(graph=False):
