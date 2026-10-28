@@ -1,0 +1,11 @@
+Ce dossier contient le code de Malo.
+Ce script a été écrit sur pythopn en version 3.12 et nécessite les bibliothèques pandas, numpy, datetime, math, et matplotlib.pyplot.
+
+Il est organisé sous formes de sections séparées par des '##', chaque section jouant un rôle particulier dans la prédiction.
+Pour utiliser ce code, il faut simplement lancer les sections une à une. La plupart contiennent uniquement des fonctions, jusqu'aux sections 
+permettant le tracé de courbes et l'affichage de statistiques.
+Notamment, on tracera les courbes de validation des modèles ELM et ARp permettant ensuite le choix de leurs hyperparamètres. On affichera
+également toutes les statistiques de performance des différents modèles, avant de tracer ces résultats pour plus de visibilité.
+
+On prendra garde au fait que le code n'est de toute évidence pas très optimisé en temps de calcul, l'apprentissage et testage des modèles 
+peut prendre quelques dizaines de secondes. De plus, le code peut être difficlement compréhensible, malgré les commentaires qui l'accompagnent.
