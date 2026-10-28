@@ -28,7 +28,7 @@ df=df.dropna() # on nettoies les lignes sans valeurs
 #on filtre les données pour s'interesser à la consommation énergétique des Français sur une période précise
 #ici on essaiera en particulier de prédire la consommation sur le jour du 31 aout 2026
 
-mask= (df['Date']>='2026-08-31')
+mask= (df['Date']>='2026-08-30')
 df31a = df[mask]
 yr=df31a[['Consommation (MW)']]
 #yrr=df[mask][['Date et Heure', 'Consommation (MW)']].set_index('Date et Heure') 
@@ -117,6 +117,8 @@ def minpAR(X,graph=False):
     P=np.arange(2, 25)
     nRMSEs=np.array([nRMSE(X, AR(X, p,graph=False,stats=False)) for p in P])
     plt.plot(P, nRMSEs.tolist(), label="nRMSE")
+    plt.xlabel("Retard p")
+    plt.ylabel("nRMSE")
     plt.show()
     print(np.argmin(nRMSEs.tolist())+2)
 
@@ -150,7 +152,7 @@ def minpdiffAR(X,graph=False):
     if graph:
         plt.plot(P, nRMSEs.tolist(), label="nRMSE")
         plt.show()
-    print(np.argmin(nRMSEs.tolist())+2)
+    print(np.argmin(nRMSEs.tolist())+1)
 
 #pour diffAR, il suffit d'utiliser AR avec la série différentiée en entrée et de retrouver en sommant la sortie 
 
@@ -182,22 +184,24 @@ def sigmoid(x):
 #on veut optimiser les deux parametres de l'ELM, le retard p comme en AR et L la profondeur de la couche
 
 def minpELM(X,graph=False):
-    P=np.arange(2, 25)
-    nRMSEs=np.array([nRMSE(X, ELM(X, p, 100, 0.01,graph=False,stats= False)) for p in P])
+    P=np.arange(1, 25)
+    nRMSEs=np.array([nRMSE(X, ELM(X, p, 50, 0.01,graph=False,stats= False)) for p in P])
     if graph:
         plt.plot(P, nRMSEs.tolist(), label="nRMSE")
+        plt.xlabel("Retard p")
+        plt.ylabel("nRMSE")
         plt.show()
-    p_opt=np.argmin(nRMSEs)+2
+    p_opt=np.argmin(nRMSEs)+1
     print(p_opt)
     return p_opt
 
 def minLELM(X,graph=False):
     Ls=np.arange(1, 75)
-    nRSMEs=np.array([nRMSE(X, ELM(X, 2, L, 0.01,graph=False,stats=False)) for L in Ls])
+    nRSMEs=np.array([nRMSE(X, ELM(X, 3, L, 0.01,graph=False,stats=False)) for L in Ls])
     if graph:
         plt.plot(Ls, nRSMEs.tolist(), label="nRMSE")
         plt.show()
-    L_opt=np.argmin(nRSMEs.tolist())+2
+    L_opt=np.argmin(nRSMEs.tolist())+1
     print(L_opt)
     return L_opt
 
@@ -230,12 +234,12 @@ MODELE IV - EXTREME LEARNING MACHINE DIFFERENCIEE
 
 #similairement à ce que l'on a vu plus tot avec l'AR
 
-def diffELM(Y,p,L,a,graph=True,stats=True):
+def diffELM(Y,p,L,a=0.001,graph=True,stats=True):
     YL=Y.to_numpy()
     z=Y.diff().dropna()
-    zp = ELM(z,p,L,a,graph)
+    zp = ELM(z,p,L,a,graph=False,stats=False)
     yp=zp+Y.shift(1).to_numpy()[:-1,0]
-    if not stats:
+    if stats:
         print(statistiques(Y[p:],yp[p:]))
-    if not graph:
+    if graph:
         graphique(Y[p:],yp[p:],f'diffELM({p},{L},{a})')
