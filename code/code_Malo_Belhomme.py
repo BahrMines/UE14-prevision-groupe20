@@ -5,11 +5,11 @@ import datetime
 import math
 SEUIL=3 #écart maximal compris en heures accepté pour faire une interpolation de valeurs
 L=[5]+[30*i for i in range(1,18)]   #valeurs de L testées
-Lp=[p for p in range(1,100)]   #valeurs de p testées dans AR(p)
+Lp=[p for p in range(1,70)]   #valeurs de p testées dans AR(p)
 
 
 
-data=pd.read_csv('/Users/malo/Work Mines/UE14/Data_UE14_def.csv', sep=";")
+data=pd.read_csv('/Users/malo/WorkMines/UE14/Data_UE14_def.csv', sep=";")
 mask=data['valeur brute'].notna()
 data=data[mask]
 data=data[['Date de début','valeur brute']]
@@ -39,7 +39,7 @@ for index,row in data[1:].iterrows(): #Traitement du tableau de données : inter
             data.loc[rowPrec.name+1+i]=['Completed', interpol]
 
     elif ecart >SEUIL+0.0001:
-        data.loc[index-1]=['Too big gap', float(NaN)]
+        data.loc[index-1]=['Too big gap', float('nan')]
     rowPrec=data.loc[index]
 
 data=data.sort_index()
@@ -55,10 +55,10 @@ dataValidCentre=dataValid-np.mean(dataTrain)
 
 
 
-#dataTrainDecal=dataTrain.copy()
-#dataTrainDecal=dataTrainDecal.iloc[1:].dropna()
-#dataTrain=dataTrain.dropna()
-#dataTrainDiff=dataTrain['valeur brute'].to_numpy() - np.append(dataTrainDecal['valeur brute'].to_numpy(),0)
+dataDecal=data.copy()
+dataDecal=dataDecal.dropna().iloc[1:]
+data=data.dropna()
+dataDiff=data['valeur brute'].to_numpy() - np.append(dataDecal['valeur brute'].to_numpy(),0)
 
 
 
@@ -108,6 +108,7 @@ for p in Lp:
 def XYDiff(data,p):
     Y=[]
     X=[]
+    YRebuild=[]
     compteur=0
     for i,val in data.loc[1:].items():
         if math.isnan(val): compteur=0
@@ -115,9 +116,11 @@ def XYDiff(data,p):
             if compteur>=p+1:
                 Y.append([data[i]-data[i-1]])
                 X.append([data[j]-data[j-1] for j in range(i-p,i)])
+                YRebuild.append([data[i-1]])
             compteur+=1
     X,Y=np.array(X),np.array(Y)
-    return X,Y
+
+    return X,Y,YRebuild
 
 
 
@@ -126,7 +129,7 @@ dicY_ARpDiff={p:[] for p in Lp}
 dicX_ARpDiff={p:[[]] for p in Lp}
 
 for p in Lp:
-    X,Y=XYDiff(dataTrainCentre,p)
+    X,Y,dicRebuild=XYDiff(dataTrainCentre,p)
     dicY_ARpDiff[p]=Y
     dicX_ARpDiff[p]=X
     Xt=np.transpose(X)
@@ -139,7 +142,9 @@ for p in Lp:
 
 
 def paramELM(X,Y,Win,b,p,fun): #Win est tiré aléatoirement au préalable de taille p*L, ainsi que b de taille 1*L. fun est une ufunc. X,Y peuvent etre différenciés ou non
-    H=fun(np.dot(X,Win)+b)
+    if func==sigmo: norm=10
+    else: norm =3
+    H=fun(np.dot(X,Win)/5+b)
     Ht=np.transpose(H)
     S=np.dot(Ht,H)
     ridge=10**(-3)*np.eye(len(S))
@@ -153,7 +158,7 @@ def paramELM(X,Y,Win,b,p,fun): #Win est tiré aléatoirement au préalable de ta
 
 def geneELM_fullPlageL(p,fun,diff=False):   #donne, pour une génération aléatoire de Win et b donnée, les coefficients de sortie optimisés beta
     if diff:
-        X,Y=XYDiff(dataTrainCentre,p)
+        X,Y,YRebuild=XYDiff(dataTrainCentre,p)
     else:
         X,Y=XY(dataTrainCentre,p)
     dicoBetaELM={}
@@ -161,7 +166,7 @@ def geneELM_fullPlageL(p,fun,diff=False):   #donne, pour une génération aléat
     dicBiais={}
     for l in L:
         Win=np.random.uniform(-1,1,size=[p,l])
-        b=np.random.uniform(-5,5,size=[1,l])
+        b=np.random.uniform(-1,1,size=[1,l])
         dicWin[l]=Win
         dicBiais[l]=b
         beta=paramELM(X,Y,Win,b,p,fun)
@@ -196,17 +201,26 @@ def nMBE(trueValues,predictedValues):
     return (error.sum()/N)/abs(np.mean(trueValues)+np.mean(dataTrain))
 
 def RSquared(trueValues,predictedValues):
-    denom=np.square(trueValues - np.mean(trueValues))
+    N=len(predictedValues)
+    error=np.array(predictedValues).reshape(N)-np.array(trueValues).reshape(N)
+    denom=np.square(trueValues - np.mean(trueValues)).sum()
     errSquared=(np.square(error).sum())
     return 1-errSquared/denom
 
-def NICE(trueValues,predictedValues):
+
+
+def NICE_sigma(trueValues,predictedValues,Data):
     L=0
-    err=np.abs(trueValues-predictedValues)
     N=len(predictedValues)
+    error=np.abs(np.array(predictedValues).reshape(N)-np.array(trueValues).reshape(N))
+    Ypersistance,YTruePersistance=persistance(Data)
+    Npersistance=len(Ypersistance)
+    errPersistance=np.abs(np.array(Ypersistance).reshape(Npersistance)-np.array(YTruePersistance).reshape(Npersistance))
+
     for k in [1,2,3]:
-        Lk=((err**k).sum()/N)**(1/k)
-        L+=Lk
+        Lk=((error**k).sum()/N)**(1/k)
+        Lkpersistance=((errPersistance**k).sum()/Npersistance)**(1/k)
+        L+=Lk/Lkpersistance
     return L/3
 
 
@@ -238,55 +252,60 @@ def ARp_predict(data):  #renvoie les valeurs predites pour data, dans un dico av
 def ARp_predictDiff(data):
     dicYDiff_TrueValues={}
     dicY_ARpDiff_predict={}
+    dicYRebuild={}
     for p in Lp:
         Y_predict=[]
-        X,Y=XYDiff(data,p)
-        dicYDiff_TrueValues[p]=Y
-        rowPrec=X[0]
-        XW=np.dot(rowPrec,dicW_ARpDiff[p])+rowPrec[0]*dicW_ARpDiff[p][0][0]-rowPrec[-1]*dicW_ARpDiff[p][-1][0]
+        X,Y,YRebuild=XYDiff(data,p)
+        dicYRebuild[p]=YRebuild
+        #rowPrec=X[0]
+        #XW=np.dot(rowPrec,dicW_ARpDiff[p])+rowPrec[0]*dicW_ARpDiff[p][0][0]-rowPrec[-1]*dicW_ARpDiff[p][-1][0]
         for row in X:
-            XW=XW-rowPrec[0]*dicW_ARpDiff[p][0][0]+row[-1]*dicW_ARpDiff[p][-1][0]
+            #XW=XW-rowPrec[0]*dicW_ARpDiff[p][0][0]+row[-1]*dicW_ARpDiff[p][-1][0]
+            #rowPrec=row
+            XW=np.dot(row,dicW_ARpDiff[p])
             Y_predict.append(XW)
-            rowPrec=row
+
+        dicYDiff_TrueValues[p]=Y
         dicY_ARpDiff_predict[p]=Y_predict
-    return  dicY_ARpDiff_predict,dicYDiff_TrueValues
+    return  dicY_ARpDiff_predict,dicYDiff_TrueValues, dicYRebuild
 
 
 
 ##Validation ELM
 
 
-def ELM_predict(data,func):
+def ELM_predict(data,func,funcdiff):
     dicY_ELM_predict={} #pour chaque clé p, contient un autre dico qui pour chaque clé L détient le tableau des valeurs prédites par l'ELM
     dicY_ELMDiff_predict={}
     dicY_True={}
     dicYDiff_True={}
+    dicYRebuild={}
     for p in [2,5,10]:
         dicY_ELMp_predict={}
         dicY_ELMpDiff_predict={}
         dicBeta,dicWin,dicBiais=geneELM_fullPlageL(p,func)
-        dicBetaDiff,dicWinDiff,dicBiaisDiff=geneELM_fullPlageL(p,func,diff=True)
-        XDiff,YDiff=XYDiff(data,p)
+        dicBetaDiff,dicWinDiff,dicBiaisDiff=geneELM_fullPlageL(p,funcdiff,diff=True)
+        XDiff,YDiff,YRebuild=XYDiff(data,p)
+        dicYRebuild[p]=YRebuild[:-1]
         X,Y=XY(data,p)
-        dicY_True[p]=Y
-        dicYDiff_True[p]=YDiff
-
+        dicY_True[p]=Y[:-1]
+        dicYDiff_True[p]=YDiff[:-1]
         for l in L:
             Win=dicWin[l]
             biais=dicBiais[l]
             beta=dicBeta[l]
             Y_predictL=[]
-            rowPrec=X[0]
-            XW=np.dot(rowPrec,Win)  + rowPrec[0]*Win[0] - rowPrec[-1]*Win[-1]
+            #rowPrec=X[0]
+            #XW=np.dot(rowPrec,Win)  + rowPrec[0]*Win[0] - rowPrec[-1]*Win[-1]
 
             for row in X:
-                XW= XW - rowPrec[0]*Win[0] + row[-1]*Win[-1]
+                #XW= XW - rowPrec[0]*Win[0] + row[-1]*Win[-1]
+                XW=np.dot(row,Win)
                 H=func(XW+biais)
                 Y_predictL.append(np.dot(H,beta))
 
-                rowPrec=row
-            dicY_ELMp_predict[l]=Y_predictL
-            #print(len(dicY_True[p])==len(Y_predictL))
+                #rowPrec=row
+            dicY_ELMp_predict[l]=Y_predictL[1:]
         dicY_ELM_predict[p]=dicY_ELMp_predict
 
 
@@ -295,17 +314,18 @@ def ELM_predict(data,func):
             biaisDiff=dicBiaisDiff[l]
             betaDiff=dicBetaDiff[l]
             Y_predictLDiff=[]
-            rowPrec=X[0]
-            XW=np.dot(rowPrec,WinDiff)  + rowPrec[0]*WinDiff[0] - rowPrec[-1]*WinDiff[-1]
+            #rowPrec=XDiff[0]
+            #XW=np.dot(rowPrec,WinDiff)  + rowPrec[0]*WinDiff[0] - rowPrec[-1]*WinDiff[-1]
 
             for row in XDiff:
-                XW= XW - rowPrec[0]*WinDiff[0] + row[-1]*WinDiff[-1]
+                #XW= XW - rowPrec[0]*WinDiff[0] + row[-1]*WinDiff[-1]
+                XW=np.dot(row,WinDiff)
                 H=func(XW+biaisDiff)
                 Y_predictLDiff.append(np.dot(H,betaDiff))
-                rowPrec=row
-            dicY_ELMpDiff_predict[l]=Y_predictLDiff
+                #rowPrec=row
+            dicY_ELMpDiff_predict[l]=Y_predictLDiff[1:]
         dicY_ELMDiff_predict[p]=dicY_ELMpDiff_predict
-    return (dicY_ELM_predict,dicY_True), (dicY_ELMDiff_predict, dicYDiff_True)
+    return (dicY_ELM_predict,dicY_True), (dicY_ELMDiff_predict, dicYDiff_True, dicYRebuild)
 
 
 ##Prediction avec persistance
@@ -318,7 +338,8 @@ def persistance(data):
     return Y_predict,Y[1:]
 
 
-##Tracés validation
+##Fonctions validation
+
 
 
 def trace_valid_nRMSE_ELM(data):
@@ -328,7 +349,7 @@ def trace_valid_nRMSE_ELM(data):
     for i,func in enumerate(tabFun):
 
 
-        (dicY_pred,dicY_True),(dicYDiff_pred,dicYDiff_True)=ELM_predict(data,func)
+        (dicY_pred,dicY_True),(dicYDiff_pred,dicYDiff_True,dicYRebuild)=ELM_predict(data,func,func)
 
         for j,diff in enumerate(['non diff','diff']):
             if diff=='diff': dicY_predict, dicY_TrueValues=dicYDiff_pred,dicYDiff_True
@@ -339,6 +360,10 @@ def trace_valid_nRMSE_ELM(data):
                 for l in L:
                     Ypred=dicoYPred[l]
                     Y=dicoYTrue
+                    if diff=='diff':
+                        YRebuild=dicYRebuild[p]
+                        Ypred=[Ypred[i][0]+YRebuild[i][0] for i in range(len(YRebuild)) ]
+                        Y=[Y[i][0]+YRebuild[i][0] for i in range(len(YRebuild)) ]
                     nRMSEtab.append(nRMSE(Y,Ypred)*100)
                 ax.plot(L,nRMSEtab,label=f"{p} retards en entrée")
             ax.set_xlabel("Valeurs de L, nombre de neurones")
@@ -351,7 +376,7 @@ def trace_valid_nRMSE_ELM(data):
 def trace_valid_nRMSE_ARp(data):
     dicY_ARp_predict,dicY_TrueValues=ARp_predict(data)
     fig,axes=plt.subplots(1,2)
-    (dicY_pred,dicY_True),(dicYDiff_pred,dicYDiff_True)=ARp_predict(data),ARp_predictDiff(data)
+    (dicY_pred,dicY_True),(dicYDiff_pred,dicYDiff_True,dicYRebuild)=ARp_predict(data),ARp_predictDiff(data)
     for j,diff in enumerate(['non diff','diff']):
         if diff=='diff': dicY_predict, dicY_TrueValues=dicYDiff_pred,dicYDiff_True
         else: dicY_predict, dicY_TrueValues=dicY_pred,dicY_True
@@ -360,7 +385,11 @@ def trace_valid_nRMSE_ARp(data):
         for p in dicY_predict:
             Ypred=dicY_predict[p]
             Y=dicY_TrueValues[p]
-            nRMSEtab.append(nRMSE(Y,Ypred)*100)
+            if diff=='diff':
+                YRebuild=dicYRebuild[p]
+                Ypred=[Ypred[i][0]+YRebuild[i][0] for i in range(len(YRebuild)) ]
+                Y=[Y[i][0]+YRebuild[i][0] for i in range(len(YRebuild)) ]
+            nRMSEtab.append(nRMSE(Y[:-1],Ypred[1:])*100)
         ax.plot(Lp,nRMSEtab)
         ax.set_xlabel('nombre de retards p')
         ax.set_ylabel('nRMSE en %')
@@ -368,9 +397,116 @@ def trace_valid_nRMSE_ARp(data):
     plt.suptitle("nRMSE des séries différenciées ou non, avec la méthode AR(p)" )
     plt.show()
 
+##Tracés validation
+
+trace_valid_nRMSE_ARp(dataValidCentre)
+trace_valid_nRMSE_ELM(dataValidCentre)
 
 ##Tests des modèles
 
+p_ARp=2
+p_ARpDiff=1
+p_ELM=10
+p_ELMDiff=5
+L_ELM=5
+L_ELMDiff=5
+func=sigmo
+funcDiff=tanh
+
+def Rebuild(YDiff,YRebuild):
+    return [YDiff[i][0]+YRebuild[i][0] for i in range(len(YRebuild))]
+
+
+(d1,d2),(d3,d4,d5)=ELM_predict(dataTestCentre,func,funcDiff)
+(YPredELM,YTrueELM),(YDiffPredELM,YDiffTrueELM,YRebuildELM)=(d1[p_ELM][L_ELM],d2[p_ELM]),(d3[p_ELMDiff][L_ELMDiff], d4[p_ELMDiff], d5[p_ELMDiff])
+YDiffPredELM,YDiffTrueELM=Rebuild(YDiffPredELM,YRebuildELM)[1:], Rebuild(YDiffTrueELM,YRebuildELM)[:-1]
+
+
+d1,d2=ARp_predict(dataTestCentre)
+YPredARp,YTrueARp=d1[p_ARp][1:],d2[p_ARp][:-1]
+
+d1,d2,d3=ARp_predictDiff(dataTestCentre)
+YRebuildARp=d3[p_ARpDiff]
+YPredARpDiff,YTrueARpDiff=Rebuild(d1[p_ARpDiff],YRebuildARp)[1:],Rebuild(d2[p_ARpDiff],YRebuildARp)[:-1]
+
+
+YPredPersistance,YTruePersistance=persistance(dataTestCentre)
+
+print(f"Le nRMSE des différents modèles est: {nRMSE(YTrueELM,YPredELM)*100}% pour l'ELM, {nRMSE(YDiffTrueELM,YDiffPredELM)*100}% pour l'ELM différencié, {nRMSE(YTrueARp,YPredARp)*100}% pour l'AR, et {nRMSE(YTrueARpDiff,YPredARpDiff)*100}% pour l'AR différencié. Enfin on a un nRMSE de {nRMSE(YTruePersistance,YPredPersistance)*100}% pour le modèle de référence de persistance.")
+
+
+def afficher_statistiques(serie, nom_serie):
+    N = len(serie)
+
+    # Moyenne
+    m = np.mean(serie)
+
+    # Écart-type (division par N implicite dans np.mean)
+    sigma = np.sqrt(np.mean((serie - m)**2))
+
+    # Asymétrie (Skewness)
+    skewness = np.mean((serie - m)**3) / (sigma**3)
+
+    # Aplatissement (Kurtosis)
+    kurtosis = np.mean((serie - m)**4) / (sigma**4)
+
+    print(f"-Statistiques : {nom_serie} -")
+    print(f"Moyenne      : {m:.4f}")
+    print(f"Écart-type   : {sigma:.4f}")
+    print(f"Asymétrie    : {skewness:.4f}")
+    print(f"Aplatissement: {kurtosis:.4f}\n")
+
+
+afficher_statistiques(data['valeur brute'],"pollution de l'air")
+afficher_statistiques(dataDiff,"pollution de l'air différencié")
+
+
+LYpred=[ YPredARp,YPredELM,YPredPersistance,YPredARpDiff, YDiffPredELM]
+LYtrue=[ YTrueARp,YTrueELM, YTruePersistance,YTrueARpDiff,YDiffTrueELM]
+Ltitle=['AR','ELM','Persistance','AR Diff', 'ELM Diff']
+LmetricsName=['nMAE','nMBE','RSquared','NICE_sigma']
+for i,metrique in enumerate([nMAE,nMBE,RSquared,NICE_sigma]):
+    for k in range(5):
+        if i!=3:
+            print(f'la métrique {LmetricsName[i]} vaut {metrique(LYtrue[k], LYpred[k])}% pour le modèle {Ltitle[k]} ')
+        else: print(f'la métrique {LmetricsName[i]} vaut {metrique(LYtrue[k], LYpred[k],dataTestCentre)} pour le modèle {Ltitle[k]} ')
+
+
+
+
+##Graphes de visualisation
+
+
+#tracé des différentes prédictions sur une période de N heures
+N=200
+LYpred=[ YPredARp,YPredELM,YPredPersistance,YPredARpDiff, YDiffPredELM]
+LYtrue=[ YTrueARp,YTrueELM, YTruePersistance,YTrueARpDiff,YDiffTrueELM]
+Ltitle=['AR','ELM','Persistance','AR Diff', 'ELM Diff']
+tabt=[i for i in range(N)]
+fig,axes=plt.subplots(2,3)
+axes[1,2].set_visible(False)
+#axes[0][1].set_position([0.24,0.125,0.228,0.343])
+
+for k in range(5):
+    i=k//3
+    j=k%3
+    axes[i,j].plot(tabt, np.asarray(LYpred[k]).reshape(-1)[1000-N:1000], ls='-', color='red', label='Prédiction')
+    axes[i,j].plot(tabt, np.asarray(LYtrue[k]).reshape(-1)[1000-N:1000] ,color='black', label='Vraies valeures')
+    axes[i,j].set_ylabel('Pollution en microgramme/m^3 de PM10')
+    axes[i,j].set_xlabel('temps en heures')
+    axes[i,j].set_title(f'Prédiction avec {Ltitle[k]}')
+    axes[i,j].get_legend()
+plt.legend()
+plt.show()
+
+
+tabnRMSE=[nRMSE(YTruePersistance,YPredPersistance)*100, nRMSE(YTrueELM,YPredELM)*100, nRMSE(YDiffTrueELM,YDiffPredELM)*100, nRMSE(YTrueARp,YPredARp)*100, nRMSE(YTrueARpDiff,YPredARpDiff)*100, ]
+tabModels=['Persistance', 'ELM', 'ELM DIff', 'ARp', 'ARp Diff']
+plt.figure()
+plt.bar(tabModels, tabnRMSE)
+plt.ylabel('nRMSE en %')
+plt.title('Performance de chaque modèle')
+plt.show()
 
 
 
