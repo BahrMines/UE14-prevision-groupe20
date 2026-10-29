@@ -1,0 +1,216 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+### Métriques
+def nmbe(x,xprev):
+    """Biais normalisé en %"""
+    return (np.mean(xprev-x)/np.mean(x))*100
+
+def nmae(x,xprev):
+    """Erreur absolue moyenne normalisée, en %"""
+    return (np.mean(np.abs(xprev-x))/np.mean(x))*100
+
+def nrmse(x,xprev):
+    """RMSE normalisé en %"""
+    return (np.sqrt(np.mean((xprev-x)**2))/np.mean(x))*100
+
+def r2(x,xprev):
+    return 1-np.sum((xprev-x)**2)/np.sum((x-np.mean(x))**2)
+
+def lk(e,k):
+    return np.mean(np.abs(e)**k)**(1.0/k)
+
+def nice_sigma(x,xprev,xprev_pers):
+    """NICE^Sigma : moyenne sur k=1,2,3 de Lk(modèle)/Lk(persistance)"""
+    e=xprev-x
+    e_p=xprev_pers-x
+    return np.mean([lk(e,k)/lk(e_p,k) for k in (1,2,3)])
+
+def moyenne(x):
+    return np.mean(x)
+
+def ecart_type(x):
+    return np.sqrt(np.mean((x-np.mean(x))**2))
+
+def skewness(x):
+    m=np.mean(x)
+    s=ecart_type(x)
+    return np.mean((x-m)**3)/s**3
+
+def kurtosis(x):
+    """Kurtosis non centré"""
+    m=np.mean(x)
+    s=ecart_type(x)
+    return np.mean((x-m)**4)/s**4
+
+### Fonction générale de construction de (X,y) pour un AR(p) ou un ELM
+def construction(z,p):
+    """Construit (X,y) pour un AR(p)/ELM avec p retards
+    Ligne i : X[i]=[z[p-1+i],z[p-i],...,z[i]] et y[i]=z[p+i]"""
+    N=len(z)
+    X=np.column_stack([z[p-1-j:N-1-j] for j in range(p)])
+    y=z[p:]
+    return X,y
+
+### Persistance
+def persistance(x):
+    """Modèle persistance : la prévision de l'heure t est la valeur de l'heure t-1"""
+    xprev=np.full(len(x),np.nan)
+    xprev[1:]=x[:-1] # On ne peut prévoir qu'à partir de la deuxième heure, la première est donc remplacée par NaN
+    return xprev
+
+### Modèle AR(p)
+def modèle_ar(z_train,p):
+    """Estime un AR(p) par moindres carrés sur la série centrée
+    On calcule w à l'aide de la méthode des moindres carrés ordinaires"""
+    mu=np.mean(z_train) # Moyenne sur le jeu d'apprentissage
+    X,y=construction(z_train-mu,p) # On construit les matrices associées pour appliquer la méthode des MCO
+    Xt=np.transpose(X)
+    w=np.dot(np.linalg.inv(np.dot(Xt,X)),np.dot(Xt,y))
+    return {"mu":mu,"w":w,"p":p}
+
+def ar_un_pas(model,z):
+    """Prévisions à 1 pas sur z"""
+    z_centre=z-model["mu"]
+    X,_=construction(z_centre,model["p"])
+    ecart_prev=np.dot(X,model["w"]) # On prédit chaque valeur à partir des p précédentes (le p correspondant au modèle choisi)
+    return ecart_prev+model["mu"]
+
+### Modèle ELM
+def modèle_elm(z_train,p,L=50,alpha=1e-3,seed=0):
+    """ELM : H = tanh(X*W + b) avec W, b aléatoires fixés
+    beta calculé avec une régression ridge"""
+    rng=np.random.default_rng(seed) # On se met dans une seed pour faire les tirages des biais et poids d'entrée
+    X,y=construction(z_train,p)
+    W=rng.standard_normal((p,L)) # Tirage des poids d'entrée
+    b=rng.standard_normal(L) # Tirage des biais d'entrée
+    H=np.tanh(np.dot(X,W)+b)
+    beta=np.dot(np.linalg.inv(np.dot(np.transpose(H),H)+alpha*np.eye(L)),np.dot(np.transpose(H),y))
+    return {"W":W,"b":b,"beta":beta,"p":p}
+
+def elm_un_pas(model,z):
+    """Prévisions à 1 pas sur z (alignées sur z[p:])"""
+    X,_=construction(z,model["p"])
+    H=np.tanh(np.dot(X,model["W"])+model["b"]) # La fonction tanh biaise ici la linéarité, à voir si le résultat est satisfaisant
+    return np.dot(H,model["beta"]) # On prédit chaque valeur à partir des p précédentes (le p correspondant au modèle choisi)
+
+### Prévisions sur toute la série avec un modèle construit sur la série d'apprentissage
+### xprev[t] est la prévision de x[t] faite avec les valeurs d'avant (NaN pour les premières heures)
+
+def prévision_ar(x,a,p,diff=False):
+    """AR(p) appris sur x[:a]. Si diff=True (diff pour différenciation), on apprend sur les variations x[t]-x[t-1]
+    puis on recentre autour de la valeur attendue : x_prev[t+1]=x[t]+variation prévue"""
+    xprev=np.full(len(x),np.nan)
+    if diff:
+        d=np.diff(x) # L'array constitué des x[t]-x[t-1]
+        modele=modèle_ar(d[:a-1],p) # a-1 car le premier élément de d est x[1]-x[0] or on ne veut dépasser le a-ième élément (dernier alloué à l'apprentissage)
+        xprev[p+1:]=x[p:-1]+ar_un_pas(modele,d) # La valeur prédite est celle du temps précédent auquel on ajoute la variation
+    else:
+        modele=modèle_ar(x[:a],p)
+        xprev[p:]=ar_un_pas(modele,x)
+    return xprev
+
+def prévision_elm(x,a,p,L,seed,diff=False):
+    """Pareil que prévision_ar mais avec un ELM de L neurones"""
+    xprev=np.full(len(x),np.nan)
+    if diff:
+        d=np.diff(x)
+        modele=modèle_elm(d[:a-1],p,L,1e-3,seed)
+        xprev[p+1:]=x[p:-1]+elm_un_pas(modele,d) # La valeur prédite est celle du temps précédent auquel on ajoute la variation
+    else:
+        modele=modèle_elm(x[:a],p,L,1e-3,seed)
+        xprev[p:]=elm_un_pas(modele,x)
+    return xprev
+
+### Choix des hyperparamètres sur la VALIDATION (x[a:b]), le test n'est jamais utilisé ici
+def meilleur_p(x,a,b,diff=False,pmax=40):
+    """Pour p allant de 1 à pmax : on apprend sur x[:a] (apprentissage), on prédit sur x[:b] et on mesure le nRMSE sur x[a:b] (validation).
+    On garde le plus petit p qui est à moins de 0,5% du meilleur"""
+    erreurs=[]
+    for p in range(1,pmax+1):
+        xprev=prévision_ar(x[:b],a,p,diff)
+        erreurs.append(nrmse(x[a:b],xprev[a:b])) # Comparaison sur le jeu de validation
+    erreurs=np.array(erreurs)
+    p_choisi=np.where(erreurs<=erreurs.min()*1.005)[0][0]+1 # On ne garde que les p tels que le nrmse ne dépasse pas de 0.5% le nrmse minimum et on prend le plus petit
+    print("  nRMSE validation selon p :",np.round(erreurs,2)) # On arrondit les valeurs des nrmse au centième près
+    return p_choisi
+
+def meilleur_L(x,a,b,p,diff=False,liste_L=(5,10,20,50,100,200,500,1000),n_tirages=20):
+    """Pour chaque L : n_tirages ELM appris sur x[:a], on garde le meilleur tirage sur x[a:b].
+    Puis on garde le plus petit L à moins de 0,5% du meilleur. Renvoie (L, graine)"""
+    erreurs=[]
+    graines=[]
+    for L in liste_L: # On teste chaque nombre de neurones
+        err_tirages=[]
+        for seed in range(n_tirages): # Pour différentes initialisations des poids et biais de la couche d'entrée
+            xprev=prévision_elm(x[:b],a,p,L,seed,diff)
+            err_tirages.append(nrmse(x[a:b],xprev[a:b])) # Comparaison sur le jeu de validatio
+        erreurs.append(np.min(err_tirages))
+        graines.append(np.argmin(err_tirages))
+    erreurs=np.array(erreurs)
+    i=np.where(erreurs<=erreurs.min()*1.005)[0][0] # # On ne garde que les L tels que le nrmse ne dépasse pas de 0.5% le nrmse minimum et on prend le plus petit 
+    print("  nRMSE validation selon L :",dict(zip(liste_L,np.round(erreurs,2))))
+    return liste_L[i],graines[i]
+
+### Test de l'ensemble du code
+
+# Chargement de la série horaire (base Vélib Denfert-Rochereau)
+df=pd.read_csv("Base de données Vélib Denfert-Rochereau 2020-2023.csv",index_col=False)
+df.index=pd.to_datetime(df["Date et heure de comptage"],format="ISO8601",utc=True).dt.tz_convert("Europe/Paris").dt.tz_localize(None)
+df=df[~df.index.duplicated()] # On enlève les doublons
+s=df["Comptage horaire"].sort_index().asfreq("h").interpolate() # On interpole linéairement les éventuelles valeurs manquantes tout en ajoutant les heures qui auraient pu être absentes
+x,dates=s.to_numpy(),s.index
+print("Période :",dates[0],"->",dates[-1],"| N =",len(x))
+
+# Apprentissage x[:a], validation x[a:b], test x[b:]
+n=len(x)
+a,b=int(0.7*n),int(0.85*n) # On conseille d'allouer 70% du jeu de données à l'apprentissage puis 15% et 15% pour la validation puis le jeu de test
+
+# Choix de p et L sur la validation (non différenciée puis différenciée)
+print("AR : choix de p")
+p_ar=meilleur_p(x,a,b)
+print("  p =",p_ar)
+print("AR différencié : choix de p")
+p_ard=meilleur_p(x,a,b,diff=True)
+print("  p =",p_ard)
+print("ELM : choix de L en gardant les p respectifs des modèles AR (approximation correcte ?)")
+L_elm,g_elm=meilleur_L(x,a,b,p_ar)
+print("  L =",L_elm,"| graine pour le choix des neurones =",g_elm)
+print("ELM différencié : choix de L")
+L_elmd,g_elmd=meilleur_L(x,a,b,p_ard,diff=True)
+print("  L =",L_elmd,"| graine pour le choix des neurones =",g_elmd)
+
+# Prévisions des 5 modèles (apprentissage sur x[:a] seulement)
+# On crée un dictionnaire dont les clés sont les noms des méthodes utilisées, et dont les valeurs 
+# sont les prévisions associées sur l'entièreté du jeu (on ne calculera les métriques que dans le jeu de test)
+prev={}
+prev["Persistance"]=persistance(x)
+prev["AR"]=prévision_ar(x,a,p_ar)
+prev["ELM"]=prévision_elm(x,a,p_ar,L_elm,g_elm)
+prev["AR diff"]=prévision_ar(x,a,p_ard,diff=True)
+prev["ELM diff"]=prévision_elm(x,a,p_ard,L_elmd,g_elmd,diff=True)
+
+# Évaluation sur le test uniquement
+# Affichage sous forme de tableau, gérée par Claude
+y_test=x[b:]
+xprev_pers=prev["Persistance"][b:]
+print(f"\n{'modèle':<12}{'nMBE':>8}{'nMAE':>8}{'nRMSE':>8}{'R2':>8}{'NICE':>8}")
+for nom,xprev_tout in prev.items():
+    xprev=xprev_tout[b:]
+    print(f"{nom:<12}{nmbe(y_test,xprev):8.2f}{nmae(y_test,xprev):8.2f}{nrmse(y_test,xprev):8.2f}{r2(y_test,xprev):8.3f}{nice_sigma(y_test,xprev,xprev_pers):8.3f}")
+
+# Tracé des prévisions sur la première semaine du jeu de test (168 h)
+# Affichage matplotlib, aussi gérée par Claude
+nb=168
+fig,axes=plt.subplots(len(prev),1,sharex=True,figsize=(11,10))
+for ax,(nom,xprev) in zip(axes,prev.items()):
+    ax.plot(dates[b:b+nb],x[b:b+nb],"k",label="Mesure")
+    ax.plot(dates[b:b+nb],xprev[b:b+nb],label=nom)
+    ax.set_ylabel("Comptage horaire")
+    ax.legend(loc="upper right")
+axes[-1].set_xlabel("Date")
+fig.suptitle("Prévisions à 1 h sur le jeu de test (première semaine de la série)")
+plt.tight_layout()
+plt.savefig("predictions_test.png",dpi=120)
+plt.show()

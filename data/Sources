@@ -5,3 +5,8 @@ Malo :
 Pollution de l'air (PM10), mesures par geodair, sur la station de la place de l'Opéra.
 https://www.geodair.fr/donnees/consultation?from=referentiel-mesure&polluant=24&station=FR04118&long=2.3325&lat=48.870274
 Téléchargé le 17 octobre, données sous Licence Ouverte 2.0 (Open Licence)
+
+Tom :
+Comptage vélo d'une piste cyclable, ici située à Denfert-Rochereau, mesures par la Ville de Paris
+https://opendata.paris.fr/explore/dataset/comptage-velo-historique-donnees-compteurs/information/
+J'ai concaténé les données de 2020 à 2023 en essayant d'éviter le Covid pour ne pas fausser mes modèles
