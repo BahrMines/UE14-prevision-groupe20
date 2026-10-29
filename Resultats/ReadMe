@@ -1,1 +1,17 @@
+Analyse des résultats
+
+
+Série de Malo : 
+Cette série porte sur la pollution de l'air, et présente une kurtosis élevée(8.82) qui augmente très fortement avec la différenciation (77.1).
+Cela témoigne de valeurs très élevées fréquentes, expliquant ainsi l'écart type élevé de 11.86 pour une grandeur positive de moyenne 21.78.
+Concernant les résultats de prédiction, on obtient globalement des prédictions très performantes sûrement dûes à la forte inertie de la 
+pollution de l'air. Le modèle ELM est moins performant que la persistance sur toutes les métriques, malgré une normalisation des entrées et 
+une absence de surapprentissage: l'inertie de la pollution semble plus bénéficier à la persistance que la non linéarité de l'ELM. D'ailleurs, 
+on peut observer sur la validation que augmenter le nombre de neurones L diminuait la performance, un modèle plus simple semble meilleur.
+C'est également le cas pour le modèle ARp qui se dégrade avec p qui augmente, les retards additionnels semblent pertuber la prédiction. Enfin,
+la différenciation augmente drastiquement l'efficacité pour l'ELM (44 points de nRMSE) et l'ARp (3.3 points de nRMSE demieux). On peut 
+imaginer que la série était sujette à de fortes tendances (hebdomadaires avec les trajets maison-travail ou surtout saisonnier avec les 
+pics de pollution estivaux). C'est finalement le modèle AR différencié qui est le plus performant sur toutes les métriques, avec 3.28% 
+de nRMSE contre 25.99% pour la persistance, le gain de performance de prédiction est donc substantiel.
+
 
