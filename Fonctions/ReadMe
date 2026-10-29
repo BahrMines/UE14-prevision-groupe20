@@ -1,1 +1,2 @@
-
+Ce code permet l'évaluation rapide de la performance d'une prédiction selon différentes métriques (nRMSE, nMAE, nMBE, R^2, NICE_SIGMA). 
+La fonction afficher_statistiques donne elle la description d'une série temporelle avec les métriques de moyenne, écart-type, kurtosis et skewness. 
