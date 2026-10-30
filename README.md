@@ -4,10 +4,31 @@ Dans ce mini-projet, on se proposera de prévoir différentes grandeurs à parti
 Ce travail sera réalisé par notre groupe constitué de 6 membres :
 Bahr Chahine, Alfred Marchon, Tom Vicq, Dylan Gueddoudj, Tarik Mesbahi, Malo Belhomme (responsable)
 
+ARCHITECTURE
+
 Le dossier 'rapports' comporte une bibliographie 'état de l'art' de chaque membre du groupe sur la prédiction de GHI.
 Le dossier 'Data' comporte les séries temporelles utilisées par chaque membre du groupe.
 Le dossier 'Fonctions' contient les fonctions générales utilisées par tous les membres du groupe, puis 'Code' contient les codes complets de chaque étudiant. 
 'Résultats' comporte les courbes finales permettant de comparer l'efficacité des différentes méthodes de prédiction.
 Enfin, 'Doc' correspond aux ressources nous ayant permis l'élaboration du code.
+
+
+
+LISTE DES SÉRIES 
+
+Malo : pollution dans l'air en PM10, données de geodair (https://www.geodair.fr/donnees/consultation) Open License
+Dylan : 
+Tom 
+
+
+
+
+
+LOGICIELS/VERSIONS : 
+Tous les codes ont été écrites sous Python, avec les versions suivantes :
+Alfred : 3.14.7
+Malo : 3.12
+
+
 
 
