@@ -8,9 +8,8 @@ from matplotlib.lines import Line2D
 from ai.training import Tuned
 
 ROOT = Path(__file__).resolve().parents[2]
-OUTPUT = ROOT / "../Resultats" / "tarik"
-TABLE = OUTPUT / "results.csv"
-FIGURES = OUTPUT / "figures"
+TABLE = ROOT / "tarik/stats.csv"
+FIGURES = ROOT / "../Resultats" / "figures" / "Tarik"
 
 KEY = "Série (élève)"
 DIGITS = {"nmbe": 3, "nmae": 3, "nrmse": 3, "r2": 4, "nice": 4}
@@ -55,7 +54,6 @@ class Exports:
             for model, value in values.items():
                 row[f"{METRIC_NAMES[metric]} {model}"] = round(value, DIGITS[metric])
 
-        OUTPUT.mkdir(parents=True, exist_ok=True)
         pd.DataFrame([row]).to_csv(TABLE, sep=";", index=False)
 
 
