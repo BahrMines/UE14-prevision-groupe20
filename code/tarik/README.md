@@ -6,15 +6,15 @@ Les 591 heures manquantes sont interpolées linéairement quand le trou fait 24 
 
 Apprentissage : 26/10/2023 → 25/10/2024 (8 784 h). Validation : → 25/10/2025 (8 760 h). Test : → 22/10/2026 (8 688 h).
 
-![Série](../../Resultats/tarik/figures/series.png)
+![Série](../../Resultats/figures/Tarik/series.png)
 
 ## Réglages
 
 Choisis sur la validation (plus petite valeur à moins de 0,5 % du minimum) : p = 23 pour l'AR et l'ELM, L = 100 pour l'ELM, en brut comme en différencié.
 
-![Choix de p](../../Resultats/tarik/figures/validation_AR.png)
+![Choix de p](../../Resultats/figures/Tarik/validation_AR.png)
 
-![Choix de L](../../Resultats/tarik/figures/validation_ELM.png)
+![Choix de L](../../Resultats/figures/Tarik/validation_ELM.png)
 
 ## Résultats sur le test
 
@@ -26,13 +26,13 @@ Choisis sur la validation (plus petite valeur à moins de 0,5 % du minimum) : p 
 | AR diff. | 0,081 | 27,560 | 40,609 | 0,5864 | 0,8734 |
 | ELM diff. | 0,143 | 28,239 | 41,417 | 0,5698 | 0,8913 |
 
-![nRMSE de test](../../Resultats/tarik/figures/nrmse.png)
+![nRMSE de test](../../Resultats/figures/Tarik/nrmse.png)
 
-![Persistance](../../Resultats/tarik/figures/forecast_Persistance.png)
+![Persistance](../../Resultats/figures/Tarik/forecast_Persistance.png)
 
-![AR](../../Resultats/tarik/figures/forecast_AR.png)
+![AR](../../Resultats/figures/Tarik/forecast_AR.png)
 
-![ELM](../../Resultats/tarik/figures/forecast_ELM.png)
+![ELM](../../Resultats/figures/Tarik/forecast_ELM.png)
 
 ## Analyse
 
@@ -43,3 +43,4 @@ p = 23 est proche du bord de la grille (1 à 24).
 ## Lancer le code
 
 Depuis `code/tarik/` : `python main.py` (option `--show` pour afficher les figures). Le tableau est écrit dans `Resultats/tarik/results.csv`.
+Les dépendances sont les packages `pandas` et `matplotlib`
