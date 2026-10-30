@@ -17,20 +17,31 @@ Enfin, 'Doc' correspond aux ressources nous ayant permis l'élaboration du code.
 LISTE DES SÉRIES :
 
 Malo : pollution dans l'air en PM10, données de geodair (https://www.geodair.fr/donnees/consultation) Open License
+
 Tom : Comptage de vélos, https://opendata.paris.fr/explore/dataset/comptage-velo-historique-donnees-compteurs/information/, Open Database License (ODbL) 1.0.
+
 Dylan : température de l'air à Paris, Open-Météo Historical Weather API, CC BY 4.0 (Creative Commons Attribution 4.0 International) 
+
 Alfred : prix du bitcoin en USDT, data.binance.vision, CC BY-NC-SA 4.0
+
 Bahr :
+
 Tarik :
 
 
 LOGICIELS/VERSIONS : 
 Tous les codes ont été écrites sous Python, avec les versions suivantes :
+
 Alfred : 3.14.7
+
 Malo : 3.12
+
 Dylan : 3.14.7
+
 Tom : 3.12
+
 Bahr :
+
 Tarik : 
 
 LICENSE DU TRAVAIL :
