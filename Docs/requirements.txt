@@ -1,0 +1,6 @@
+Les bibliothèques nécessaires sont :
+pandas
+numpy
+datetime
+math
+matplotlib.pyplot
