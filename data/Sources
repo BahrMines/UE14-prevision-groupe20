@@ -10,3 +10,4 @@ Tom :
 Comptage vélo d'une piste cyclable, ici située à Denfert-Rochereau, mesures par la Ville de Paris
 https://opendata.paris.fr/explore/dataset/comptage-velo-historique-donnees-compteurs/information/
 J'ai concaténé les données de 2020 à 2023 en essayant d'éviter le Covid pour ne pas fausser mes modèles
+Téléchargé le 12 octobre, données sous Open Database License (ODbL) 1.0.
