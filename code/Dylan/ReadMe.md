@@ -34,7 +34,7 @@ Avant modélisation, une analyse descriptive a été menée pour comprendre la d
 
 L'observation du graphique nous permet de comprendre le comportement des modèles :
 
-![RMSE en fonction de p et L](Resultats\figures\Dylan\choixPetL.png)
+![Détermination de L et p](choixPetL.png)
 
 1. **AR(p) - Le choix du retard :** L'erreur de validation chute drastiquement entre $p=1$ et $p=2$, prouvant que le modèle a besoin d'au moins deux heures d'historique pour comprendre la "dynamique" (la dérivée) de la courbe. L'erreur continue de baisser doucement jusqu'à $p=24$ (cycle journalier complet). Le modèle brut présenté ici retient **AR(4)** pour un compromis simplicité/efficacité, tandis que le modèle différencié utilise **AR(24)**.
 2. **ELM - Le choix des neurones cachés ($L$) :** Le graphique en échelle logarithmique montre que l'erreur s'effondre rapidement jusqu'à $L \approx 50$. Au-delà de $L=200$, la courbe stagne. Nous avons donc retenu **L=200** (ou $L=500$ pour l'intégration du calendrier) pour maximiser la capacité non linéaire sans surcharger les calculs.
@@ -45,11 +45,10 @@ L'observation du graphique nous permet de comprendre le comportement des modèle
 
 ---
 
-# 5. Analyse Physique et Comparaison des Modèles
+# 4. Analyse Physique et Comparaison des Modèles
 
 D'après les métriques et les graphiques de prévision  :
-
-![Comparaison AR(4) et ELM](Resultats\figures\Dylan\AR4, ELM x2.png)
+![Comparaison des modèles](AR4,%20ELM%20x2.png)
 
 ### A. La force de l'inertie thermique (Persistance)
 La persistance réalise un score tout à fait honorable (nRMSE = 7.22%). La température de l'air ayant une inertie physique très forte, l'heure actuelle est un excellent prédicteur de l'heure suivante. Battre la persistance (NICE < 1) exige des modèles capables de capter l'inversion de tendance (le lever ou le coucher du soleil).
@@ -60,7 +59,8 @@ La persistance réalise un score tout à fait honorable (nRMSE = 7.22%). La temp
 
 ### C. Le rôle crucial de la Différenciation
 Le graphique `Differencier vs Brut.png` et les scores illustrent brillamment l'intérêt de la stationnarité :
-![Comparaison avec ou sans différenciation ](Resultats\figures\Dylan\Differencier vs Brut.png)
+
+![Comparaison des modèles](DifferenciervsBrut.png)
 
 * L'**AR(24) Différencié** (5.12%) réalise des performances presque équivalentes à l'ELM complexe. En modélisant uniquement la variation ($\Delta T$) et en l'ajoutant à la persistance ($\hat{x}_{t+1} = x_t + \hat{y}_{t+1}$), l'AR est soulagé des grandes tendances saisonnières.
 * La différenciation permet à l'algorithme de se concentrer exclusivement sur la "dynamique" immédiate, ce qui réduit considérablement le risque d'erreurs importantes lors des pics journaliers, comme le montre le suivi extrêmement fidèle des prédictions différenciées (courbes orange et bleue) sur la courbe réelle noire.
