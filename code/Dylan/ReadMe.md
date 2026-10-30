@@ -1,4 +1,4 @@
-# 🌤️ Projet de Prévision : Séries Temporelles de la Température à Paris
+# Séries Temporelles de la Température à Paris
 
 Ce projet vise à modéliser et prévoir l'évolution de la température à Paris en comparant plusieurs approches statistiques et d'apprentissage automatique (Persistance, Autorégressif linéaire AR, et Réseaux de Neurones ELM), appliquées sur des séries temporelles brutes et différenciées.
 ---
