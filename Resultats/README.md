@@ -1,7 +1,7 @@
-Analyse des résultats
+### Analyse des résultats
 
 
-Série de Malo : 
+**Série de Malo :** 
 Cette série porte sur la pollution de l'air, et présente une kurtosis élevée(8.82) qui augmente très fortement avec la différenciation (77.1).
 Cela témoigne de valeurs très élevées fréquentes, expliquant ainsi l'écart type élevé de 11.86 pour une grandeur positive de moyenne 21.78.
 Concernant les résultats de prédiction, on obtient globalement des prédictions très performantes sûrement dûes à la forte inertie de la 
@@ -16,7 +16,7 @@ de nRMSE contre 25.99% pour la persistance, le gain de performance de prédictio
 
 
 
-Série de Bahr :
+**Série de Bahr :**
 Nous nous interessons ici à la consommation (en MW) d'électricité en moyenne d'un foyer Français.
 La série tirée de l'ODRE éCO2mix dont l'écart type relatif est de 14%, traduisant une consommation souvent élevée
 à hauteur d'en moyenne 41497 MW par jour, dont les variations plutot faibles s'expliquent par le besoin énergétique variable
@@ -31,7 +31,7 @@ cependant le nRMSE suit une augmentation logarithmique avec p qui est optimal po
 de neurones suffisent pour éviter le surapprentissage. A nouveau, la différenciation augmente largement les performances tout en restant 
 moins bon que l'AR différencié
 
-Série de Tom :
+**Série de Tom :**
 Cette série porte sur le nombre de passages horaires de vélos au niveau de l'avenue Denfert-Rochereau, à Paris, sur la période 2020-2023 (17 544 observations).
 Elle présente une moyenne de 37,05 passages par heure et un écart type de 44,29, soit un écart type relatif de près de 120 %.
 Cette forte dispersion s'explique par une alternance entre des périodes de faible circulation, notamment la nuit, et des pics de fréquentation pouvant atteindre 326 passages horaires.
