@@ -8,10 +8,13 @@ import matplotlib.pyplot as plt
 # 0. CONFIG ET IMPORTATION
 # ==============================================================================
 # L'IA a fait une tambouille pour importer les fonctions métriques 
-racine_projet = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+# On remonte de deux niveaux pour atteindre la racine du projet (UE14-prevision-groupe20)
+racine_projet = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if racine_projet not in sys.path:
     sys.path.insert(0, racine_projet)
 
+# L'importation doit alors inclure le dossier racine si nécessaire, 
+# ou si 'Fonctions' est à la racine :
 from Fonctions.Fonctions_statistiques import nMAE, nRMSE, nMBE, RSquared, NICE, afficher_statistiques
 
 # On importe les données format csv et on renomme les colonnes
@@ -114,8 +117,8 @@ for p in liste_p:
     # on calcul manuel du RMSE sur la validation pour ce p
     erreurs_validation_AR.append(np.sqrt(np.mean((Y_val_AR - Y_pred_val)**2)))
 
-# ENTRAÎNEMENT FINAL sur p=24
-p_final = 24
+# ENTRAÎNEMENT FINAL sur p=4
+p_final = 4
 X_train_final, Y_train_final = creer_matrices_AR(xc_train, p_final)
 w_final, _, _, _ = np.linalg.lstsq(X_train_final, Y_train_final, rcond=None)
 
