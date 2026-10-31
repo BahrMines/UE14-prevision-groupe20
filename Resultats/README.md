@@ -49,3 +49,13 @@ Cette amélioration suggère que les variations successives de la série sont pl
 Finalement, l'AR différencié est le modèle le plus performant, avec une erreur normalisée inférieure de près de 16 points à celle de la persistance.
 L'ELM différencié parvient également à améliorer ses performances, mais reste moins précis que les modèles autorégressifs.
 Ces résultats mettent en évidence l'intérêt de la différenciation pour cette série temporelle, ainsi que la pertinence d'une approche linéaire pour modéliser les variations du trafic cycliste.
+
+**Série d’Alfred :**
+
+Cette série correspond au prix de clôture horaire du Bitcoin en USDT sur Binance, de janvier 2022 à décembre 2024. Les 26 304 observations sont réparties chronologiquement entre apprentissage (12 000), validation (4 000) et test (10 304). Les modèles prévoient le prix une heure à l’avance.
+
+Sur le test, la persistance, l’AR, l’AR différencié et l’ELM différencié donnent des nRMSE très proches de 0,574 %. Par conséquen, le dernier prix connu constitue donc déjà une bonne approximation du suivant, et les modèles apportent peu d’amélioration. C'est cela qui permet d'expliquer la quasi-superposition de leurs courbes. Cette faible erreur, normalisée par le prix moyen du Bitcoin, ne signifie pas pour autant que les modèles anticipent correctement les hausses et les baisses.
+
+Cependant, l’ELM sans différenciation est nettement moins performant : en effet,sa nRMSE atteint 13,04 %, avec une nMBE de −8,04 %, qui nous indique une sous-estimation moyenne. Cela peut s’expliquer par les prix du test, souvent supérieurs à ceux rencontrés pendant l’apprentissage, et que ce modèle utilisant tanh extrapole difficilement. La différenciation permet de réduire cette difficulté en lui faisant prévoir les variations horaires plutôt que directement le niveau du prix.
+
+L’ELM différencié obtient la meilleure nRMSE et l’AR différencié la meilleure nMAE, mais leurs gains restent infimes par rapport à la persistance. Finalement, celle-ci demeure donc une référence simple et efficace pour cette série.

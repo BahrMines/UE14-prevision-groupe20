@@ -9,10 +9,10 @@ donnees=pd.read_csv("data/data_Alfred.csv")
 donnees["date"]=pd.to_datetime(donnees["date"], utc=True)
 donnees=donnees.set_index("date").sort_index()
 
-# On garde uniquement les 12 000 valeurs d'apprentissage.
+# On garde uniquement les 12 000 valeurs d'apprentissage
 apprentissage=donnees["prix"].iloc[:12000]
 
-# On calcule ensuite les variations à l'intérieur de l'apprentissage.
+# On calcule ensuite les variations à l'intérieur de l'apprentissage
 variations=apprentissage.diff().dropna()
 
 # On calcule les quatre caractéristiques sur les deux séries.
@@ -29,7 +29,7 @@ print("Nombre de variations :",len(variations))
 print()
 print(tableau.round(4).to_string())
 
-#On enregistre une ligne avec huit caractéristiques
+#On enregistre une ligne avec les huit caractéristiques
 ligne={}
 
 for nom,valeur in stats_brutes.items():

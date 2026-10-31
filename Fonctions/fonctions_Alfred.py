@@ -27,14 +27,14 @@ def prevision_ar(apprentissage, historique, p, positif=True):
     X = []
     y = []
     for t in range(p, len(train)):
-        # Avec cette ligne on récupère les p valeurs précédant la position t
+        # Avec cette ligne on récupère les p valeurs qui précédent la position t
         X.append(train[t-p:t][::-1])
         y.append(train[t])
 
     X = np.array(X)
     y = np.array(y)
 
-    # On apprend les coefficients par moindres carrés
+    # On apprend les coefficients avec la méthode des moindres carrés
     poids =np.linalg.lstsq(X, y, rcond=None)[0]
 
     # On prévoit chaque heure de validation avec les observations précédentes
@@ -108,7 +108,7 @@ def bilan_erreurs(mesures, previsions, previsions_persistance):
             mesures, previsions, previsions_persistance)}
 
 def prevision_elm(apprentissage, historique, p, L, graine, positif=True):
-    # On normaliser avec la moyenne et l'écart-type d'apprentissage uniquement
+    # On normalise avec la moyenne et l'écart-type d'apprentissage uniquement
     moyenne =apprentissage.mean()
     ecart_type = np.std(apprentissage, ddof=0)
     valeurs =(historique.to_numpy()- moyenne)/ecart_type
@@ -141,7 +141,7 @@ def prevision_elm(apprentissage, historique, p, L, graine, positif=True):
         H_train.T @ H_train + alpha * np.eye(L),
         H_train.T @ y_train)
 
-    # Finalement on revient aux unités de la série d'origine.
+    # Finalement on revient aux unités de la série d'origine
     previsions = moyenne +ecart_type*(H_validation @ poids_sortie)
     if positif:
         previsions = np.maximum(0, previsions)

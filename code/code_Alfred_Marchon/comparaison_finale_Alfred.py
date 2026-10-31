@@ -15,7 +15,7 @@ test =x.iloc[16000:]
 variations= x.diff().dropna()
 apprentissage_diff =variations.iloc[:11999]
 
-# On fixe les réglages sur la validation ; [4000:] retire ses 4 000 prévisions
+# On fixe les réglages sur la validation,[4000:] retire ses 4 000 prévisions
 resultats = pd.DataFrame({"mesure": test})
 resultats["Persistance"] = persistance(x).loc[test.index]
 resultats["AR"]=prevision_ar(apprentissage, x, p=5)[4000:]
