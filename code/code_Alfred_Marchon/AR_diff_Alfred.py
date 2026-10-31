@@ -24,7 +24,7 @@ apprentissage_diff =variations.iloc[:11999]
 # Pour chaque date cible, le dernier prix connu est celui de l'heure précédente
 dernier_prix =persistance(historique).loc[validation.index]
 
-# On teste les ordres de 1 à 24, avec des erreurs calculées sur les PRIX.
+# On teste les ordres de 1 à 24, avec des erreurs calculées sur les prix
 scores =[]
 previsions_par_p ={}
 
@@ -40,7 +40,7 @@ for p in range(1, 25):
 scores =pd.DataFrame(scores)
 print(scores.round(6).to_string(index=False))
 
-# O, prend toujours la même tolérance relative de 0,01 % que pour l'AR 
+# On prend toujours la même tolérance relative de 0,01 % que pour l'AR 
 seuil =1.0001 * scores["nRMSE_validation (%)"].min()
 candidats= scores[scores["nRMSE_validation (%)"] <= seuil]
 p_choisi= int(candidats.iloc[0]["p"])

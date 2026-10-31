@@ -13,13 +13,13 @@ apprentissage =x.iloc[:12000]
 validation =x.iloc[12000:16000]
 historique =x.iloc[:16000]
 
-# On met le même nombre de retards que pour l'AR brut retenu.
+# On met le même nombre de retards que pour l'AR brut retenu
 p= 5
 scores= []
 meilleurs=[]
 previsions_par_L= {}
 
-# Cinq tailles de réseau et vingt tirages pour chaque taille.
+# Cinq tailles de réseau et vingt tirages pour chaque taille
 for L in [5, 20, 50, 100, 500]:
     meilleur_score =float("inf")
     for graine in range(20):
@@ -39,7 +39,7 @@ for L in [5, 20, 50, 100, 500]:
     print("L =", L, "- meilleure nRMSE :", round(meilleur_score, 6), "%", flush=True)
 
 # Le meilleur tirage de chaque taille est conservé.
-# Puis on choisit la plus petite taille à moins de 0,01 % du meilleur score.
+# Puis on choisit la plus petite taille à moins de 0,01 % du meilleur score comme avant
 meilleurs = pd.DataFrame(meilleurs)
 seuil = 1.0001 * meilleurs["nRMSE_validation (%)"].min()
 choix = meilleurs[meilleurs["nRMSE_validation (%)"] <= seuil].iloc[0]
@@ -47,7 +47,7 @@ L_choisi =int(choix["L"])
 graine_choisie = int(choix["graine"])
 print("\nELM retenu : p =", p, ", L =", L_choisi,", graine =",graine_choisie)
 
-# On réutilise les fonctions d'évaluation communes.
+# On réutilise les fonctions d'évaluation globales
 resultats = pd.DataFrame(index=validation.index)
 resultats["mesure"] = validation
 resultats["ELM"] =previsions_par_L[L_choisi]

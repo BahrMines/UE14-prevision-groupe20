@@ -32,14 +32,15 @@ for p in range(1, 25):
 scores= pd.DataFrame(scores)
 print(scores.round(6).to_string(index=False))
 
-# Tolérance relative de 0,01 % au-dessus du meilleur score.
+# On prend une tolérance relative de 0,01 % au-dessus du meilleur score (0,5 c'était pas assez par rapport à ma série)
 seuil =1.0001 * scores["nRMSE_validation (%)"].min()
 candidats =scores[scores["nRMSE_validation (%)"] <= seuil]
 p_choisi =int(candidats.iloc[0]["p"])
 
 print("\nOrdre retenu :",p_choisi)
 
-# On peut comparer AR et persistance sur les mêmes heures de validation.
+# On peut comparer AR et persistance sur les mêmes heures de validation
+# Pour voir l'intérêt du modèle
 resultats = pd.DataFrame(index=validation.index)
 resultats["mesure"]= validation
 resultats["AR"] =previsions_par_p[p_choisi]

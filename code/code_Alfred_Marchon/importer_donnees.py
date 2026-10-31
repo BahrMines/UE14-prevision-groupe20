@@ -10,7 +10,7 @@ for annee in [2022, 2023, 2024]:
         url = (
             "https://data.binance.vision/data/spot/monthly/klines/"
             f"BTCUSDT/1h/BTCUSDT-1h-{annee}-{mois:02d}.zip")
-        # Colonne 0 : début de l'heure ; colonne 4 : prix de clôture.
+        # Colonne 0 : début de l'heure  et colonne 4 : prix de clôture.
         # On enlève les autres colonnes inutiles 
         tableau=pd.read_csv(
             url, compression="zip", header=None, usecols=[0, 4])
@@ -27,15 +27,16 @@ donnees["date"] = (pd.to_datetime(donnees["date"], unit="ms", utc=True)
     + pd.Timedelta(hours=1))
 donnees=donnees.set_index("date").sort_index()
 
-# On rétablit les heures manquantes dans le calendrier.
+# On récupère les heures manquantes dans le calendrier
 # On demande un calendrier avec une ligne toutes les heure
 donnees = donnees.asfreq("h")
 donnees["valeur_completee"]=donnees["prix"].isna()
 
 # Une heure isolée manquante est remplacée par le prix précédent.
 donnees["prix"]=donnees["prix"].ffill(limit=1)
+# On prépare un message d'erreur au cas ou 
 if donnees["prix"].isna().any():
-    raise ValueError("Il reste des données manquantes : à vérifier.")
+    raise ValueError("Il reste des données manquantes : à vérifier")
 
 # On enregistre les données pour les prochains calculs.
 donnees.to_csv("data/data_Alfred.csv")

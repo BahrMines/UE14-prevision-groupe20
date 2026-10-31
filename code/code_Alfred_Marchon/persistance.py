@@ -19,21 +19,22 @@ apprentissage=x.iloc[:12000]
 validation=x.iloc[12000:16000]
 test=x.iloc[16000:]
 
-# L’apprentissage servira à estimer les coefficients des futurs modèles AR et ELM.
+# L’apprentissage servira à estimer les coefficients des futurs modèles AR et ELM
 # La validation va servir à choisir leurs réglages et à examiner leur fonctionnement
 # Et le test servira à mesurer les performances finales après ces choix
+# c'est là qu'on verra si le modèle fonctionne vrm bien
 
 print("Apprentissage :",len(apprentissage))
 print("Validation :",len(validation))
 print("Test réservé :",len(test))
 
-# Les valeurs évaluées doivent être de vraies observations.
+# Les valeurs évaluées doivent être de vraies observations
 if donnees["valeur_completee"].iloc[12000:].any():
     raise ValueError("Une valeur à évaluer a été complétée : à vérifier.")
-# On calculer la persistance sur l'apprentissage et la validation.
+# On calculer la persistance sur l'apprentissage et la validation
 previsions=persistance(x.iloc[:16000])
 
-# On garde les prévisions correspondant aux 4000 observations de validation.
+# On garde les prévisions correspondant aux 4000 observations de validation
 prevision_validation=previsions.iloc[12000:16000]
 # On créée un tableau du type date | mesure | prevision
 resultats = pd.DataFrame({

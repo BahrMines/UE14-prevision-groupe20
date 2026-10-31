@@ -13,7 +13,7 @@ x=donnees.set_index("date").sort_index()["prix"]
 validation=x.iloc[12000:16000]
 historique=x.iloc[:16000]
 
-# On prévoit les variations puis on reconstruit les prix.
+# On prévoit les variations puis on reconstruit les prix
 variations=historique.diff().dropna()
 apprentissage_diff=variations.iloc[:11999]
 dernier_prix=historique.shift(1).loc[validation.index]
@@ -24,7 +24,7 @@ scores=[]
 meilleurs=[]
 previsions_par_L={}
 
-# Cinq tailles de réseau et vingt tirages pour chaque taille.
+# Cinq tailles de réseau et vingt tirages pour chaque taille encore
 for L in [5, 20, 50, 100, 500]:
     meilleur_score = float("inf")
 
@@ -46,8 +46,8 @@ for L in [5, 20, 50, 100, 500]:
         "nRMSE_validation (%)": meilleur_score})
     print("L =", L, "- meilleure nRMSE :", round(meilleur_score, 6), "%", flush=True)
 
-# Le meilleur tirage de chaque taille est conservé.
-# Puis on choisit la plus petite taille à moins de 0,01 % du meilleur score.
+# Pareil que pour l'ELM, le meilleur tirage de chaque taille est conservé
+# Puis on choisit la plus petite taille à moins de 0,01 % du meilleur score
 meilleurs=pd.DataFrame(meilleurs)
 seuil=1.0001 * meilleurs["nRMSE_validation (%)"].min()
 choix=meilleurs[meilleurs["nRMSE_validation (%)"]<=seuil].iloc[0]
@@ -55,7 +55,7 @@ L_choisi=int(choix["L"])
 graine_choisie=int(choix["graine"])
 print("\nELM_diff retenu :p =", p,", L =", L_choisi, ", graine =",graine_choisie)
 
-# On réutilise les fonctions d'évaluation communes.
+# On réutilise tjr les fonctions d'évaluation communes
 resultats=pd.DataFrame(index=validation.index)
 resultats["mesure"]= validation
 resultats["ELM_diff"]=previsions_par_L[L_choisi]
@@ -71,7 +71,7 @@ tableau_scores=pd.DataFrame(bilans).T
 print("\nScores sur la validation :")
 print(tableau_scores.round(6).to_string())
 
-# On conserve tous les essais et les paramètres retenus pour la suite.
+# On conserve les essais et les paramètres retenus pour la suite
 dossier="Resultats/Resultats_Alfred/"
 pd.DataFrame(scores).to_csv(dossier +"essais_ELM_diff.csv",index=False)
 pd.DataFrame([{
