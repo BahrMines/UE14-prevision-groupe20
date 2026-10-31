@@ -4,15 +4,15 @@
 **Série de Malo :** 
 Cette série porte sur la pollution de l'air, et présente une kurtosis élevée(8.82) qui augmente très fortement avec la différenciation (77.1).
 Cela témoigne de valeurs très élevées fréquentes, expliquant ainsi l'écart type élevé de 11.86 pour une grandeur positive de moyenne 21.78.
-Concernant les résultats de prédiction, on obtient globalement des prédictions très performantes sûrement dûes à la forte inertie de la 
-pollution de l'air. Le modèle ELM est moins performant que la persistance sur toutes les métriques, malgré une normalisation des entrées et 
-une absence de surapprentissage: l'inertie de la pollution semble plus bénéficier à la persistance que la non linéarité de l'ELM. D'ailleurs, 
+Concernant les résultats de prédiction, on obtient globalement des prédictions peu performantes sûrement dues à la grande kurtosis de la 
+série. Le modèle ELM est moins performant que la persistance sur toutes les métriques, malgré une normalisation des entrées et 
+une absence de surapprentissage: la non linéarité de l'ELM ne semble pas ici être un avantage. D'ailleurs, 
 on peut observer sur la validation que augmenter le nombre de neurones L diminuait la performance, un modèle plus simple semble meilleur.
-C'est également le cas pour le modèle ARp qui se dégrade avec p qui augmente, les retards additionnels semblent pertuber la prédiction. Enfin,
-la différenciation augmente drastiquement l'efficacité pour l'ELM (44 points de nRMSE) et l'ARp (3.3 points de nRMSE demieux). On peut 
+C'est également le cas pour le modèle ARp qui se dégrade avec p qui augmente, les retards additionnels semblent pertuber la prédiction, mais cela est presque sûrement une erreur de code ça ce phénomène est observé même sur les données d'apprentissage. Enfin,
+la différenciation augmente drastiquement l'efficacité pour l'ELM (11 points de nRMSE de mieux) mais diminue l'efficacité de l'ARp (0.6 points de nRMSE de moins). On peut 
 imaginer que la série était sujette à de fortes tendances (hebdomadaires avec les trajets maison-travail ou surtout saisonnier avec les 
-pics de pollution estivaux). C'est finalement le modèle AR différencié qui est le plus performant sur toutes les métriques, avec 3.28% 
-de nRMSE contre 25.99% pour la persistance, le gain de performance de prédiction est donc substantiel.
+pics de pollution estivaux). C'est finalement le modèle AR non différencié qui est le plus performant sur toutes les métriques, avec 25.19% 
+de nRMSE contre 25.99% pour la persistance, le gain de performance de prédiction n'est donc pas substantiel, mais il existe.
 
 
 
@@ -59,3 +59,6 @@ Sur le test, la persistance, l’AR, l’AR différencié et l’ELM différenci
 Cependant, l’ELM sans différenciation est nettement moins performant : en effet,sa nRMSE atteint 13,04 %, avec une nMBE de −8,04 %, qui nous indique une sous-estimation moyenne. Cela peut s’expliquer par les prix du test, souvent supérieurs à ceux rencontrés pendant l’apprentissage, et que ce modèle utilisant tanh extrapole difficilement. La différenciation permet de réduire cette difficulté en lui faisant prévoir les variations horaires plutôt que directement le niveau du prix.
 
 L’ELM différencié obtient la meilleure nRMSE et l’AR différencié la meilleure nMAE, mais leurs gains restent infimes par rapport à la persistance. Finalement, celle-ci demeure donc une référence simple et efficace pour cette série.
+
+**Tarik:**
+Cette série porte sur la concentration horaire de NO₂ à la station Ajaccio Canetto, sur trois ans (de 2023 à 2026). Elle a une moyenne de 12,51 µg/m³ et un écart-type de 10,14, soit un écart-type relatif de 81 %, avec une asymétrie positive (1,62) et une kurtosis de 5,93 : les pics de pollution sont rares mais élevés. La différenciation garde 73 % de l’écart-type (7,40) et fait monter la kurtosis à 8,80, ce qui indique des sauts brusques d’une heure à l’autre, difficiles à anticiper à partir du passé de la série. La persistance obtient déjà un nRMSE de 47,2 % (R² de 0,44). Sur la validation, l’erreur de l’AR diminue quand p augmente jusqu’à 23, valeur choisie, proche du bord de la grille testée (1 à 24), et celle de l’ELM se stabilise autour de L = 100. Le meilleur modèle est l’ELM non différencié (nRMSE 40,4 %, R² de 0,59, NICEΣ de 0,868), soit 6,8 points de moins que la persistance, mais son avance sur l’AR (40,8 %) est faible. Pour l’AR, la différenciation améliore peu le nRMSE (40,6 %) mais supprime le biais (nMBE de −2,38 % à 0,08 %). Pour l’ELM, elle dégrade le résultat (41,4 %), et c’est le moins bon des quatre modèles appris. Le gain sur la persistance reste donc modeste (NICEΣ entre 0,87 et 0,89) : les pics, sous-estimés par tous les modèles, dépendent probablement de facteurs extérieurs comme le trafic ou le vent, absents de la série.
