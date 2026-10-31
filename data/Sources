@@ -16,6 +16,10 @@ Tarik:
 Concentration de NO2 dans l'air, mesures par Geod'Air sur la station d'Ajaccio Canetto. (entre 2023 et 2026)
 Téléchargé le 20 octobre sous License Ouverte 2.0 (Open License)
 
+Dylan:
+Série temporelle univariée de la température horaire de l'air à Paris 
+Source : Open-Meteo Historical Weather API (Coordonnées : Latitude 48.8534, Longitude 2.3488, période du 01/01/2022 au 31/12/2024)Licence : CC BY 4.0 (Creative Commons Attribution 4.0 International), libre d'utilisation et de redistribution avec mention de la source.
+
 Alfred:
 Prix de clôture horaire du Bitcoin en USDT, paire BTCUSDT sur le marché spot de Binance.
 Source : archives publiques Binance Data Collection.
