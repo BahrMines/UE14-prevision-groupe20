@@ -1,0 +1,10 @@
+Tableau 1
+;;;nRMSE en %;;;;
+;;;;;;;
+Série;Domaine, pas;N_appr/N_test;Persistance;ARp;ELM;ARp Diff;ELM Diff
+Malo;Pollution air, 1h;0.99;25.99;6.62;48.18;3.28;4.41
+Alfred;;;;;;;
+Tarik;;;;;;;
+Tom;;;;;;;
+Bahr;Consommation (MW), 30min;;0,196;0,2;0,197;0,198;0,199
+Dylan;;;;;;;
