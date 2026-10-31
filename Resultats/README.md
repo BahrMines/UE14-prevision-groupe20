@@ -8,7 +8,7 @@ Concernant les résultats de prédiction, on obtient globalement des prédiction
 série. Le modèle ELM est moins performant que la persistance sur toutes les métriques, malgré une normalisation des entrées et 
 une absence de surapprentissage: la non linéarité de l'ELM ne semble pas ici être un avantage. D'ailleurs, 
 on peut observer sur la validation que augmenter le nombre de neurones L diminuait la performance, un modèle plus simple semble meilleur.
-C'est également le cas pour le modèle ARp qui se dégrade avec p qui augmente, les retards additionnels semblent pertuber la prédiction, mais cela est presque sûrement une erreur de code. Enfin,
+C'est également le cas pour le modèle ARp qui se dégrade avec p qui augmente, les retards additionnels semblent pertuber la prédiction, mais cela est presque sûrement une erreur de code ça ce phénomène est observé même sur les données d'apprentissage. Enfin,
 la différenciation augmente drastiquement l'efficacité pour l'ELM (11 points de nRMSE de mieux) mais diminue l'efficacité de l'ARp (0.6 points de nRMSE de moins). On peut 
 imaginer que la série était sujette à de fortes tendances (hebdomadaires avec les trajets maison-travail ou surtout saisonnier avec les 
 pics de pollution estivaux). C'est finalement le modèle AR non différencié qui est le plus performant sur toutes les métriques, avec 25.19% 
