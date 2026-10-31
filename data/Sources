@@ -15,3 +15,14 @@ Téléchargé le 12 octobre, données sous Open Database License (ODbL) 1.0.
 Tarik:
 Concentration de NO2 dans l'air, mesures par Geod'Air sur la station d'Ajaccio Canetto. (entre 2023 et 2026)
 Téléchargé le 20 octobre sous License Ouverte 2.0 (Open License)
+
+Alfred:
+Prix de clôture horaire du Bitcoin en USDT, paire BTCUSDT sur le marché spot de Binance.
+Source : archives publiques Binance Data Collection.
+https://data.binance.vision/?prefix=data/spot/monthly/klines/BTCUSDT/1h/
+
+Période : janvier 2022 à décembre 2024, soit 26 304 observations horaires.
+Préparation : regroupement des archives mensuelles, extraction du prix de clôture et datation en UTC à la fin de chaque heure. Une observation manquante a été complétée par le dernier prix connu.
+
+Licence : CC BY-NC-SA 4.0, avec les conditions supplémentaires de Binance (attribution, utilisation non commerciale et partage dans les mêmes conditions).
+Conditions : https://github.com/binance/binance-public-data/blob/master/TERMS_AND_CONDITIONS.md
