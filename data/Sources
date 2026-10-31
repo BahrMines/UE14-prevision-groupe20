@@ -24,5 +24,5 @@ https://data.binance.vision/?prefix=data/spot/monthly/klines/BTCUSDT/1h/
 Période : janvier 2022 à décembre 2024, soit 26 304 observations horaires.
 Préparation : regroupement des archives mensuelles, extraction du prix de clôture et datation en UTC à la fin de chaque heure. Une observation manquante a été complétée par le dernier prix connu.
 
-Licence : CC BY-NC-SA 4.0, avec les conditions supplémentaires de Binance (attribution, utilisation non commerciale et partage dans les mêmes conditions).
+Licence : CC BY-NC-SA 4.0
 Conditions : https://github.com/binance/binance-public-data/blob/master/TERMS_AND_CONDITIONS.md
