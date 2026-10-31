@@ -1,0 +1,6 @@
+Les codes présents dans ce repository nécessitent les bibiothèques Python suivantes :
+Pandas
+Numpy
+matplotlib.pyplot
+datetime
+math
